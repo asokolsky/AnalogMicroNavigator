@@ -3,10 +3,6 @@
 #include "AnalogMicroNavigator.h"
 #include "Trace.h"
 
-/** 
- * Globals: simple analog keypad is connected to pins A1 and A2 so that,e.g. up and left could be pressed simultaneously
- */
-
 static const char *getKeyNames(uint8_t vks)
 {
   static char buf[40];
@@ -29,25 +25,10 @@ static const char *getKeyNames(uint8_t vks)
 }
 
 
-/*#ifndef  NODEBUG
-static const char *getKeyName(uint8_t vk) {
-  switch(vk) {
-    case VK_NONE: return "VK_NONE";
-    case VK_RIGHT: return "VK_RIGHT";
-    case VK_UP: return "VK_UP";
-    case VK_DOWN: return "VK_DOWN";
-    case VK_LEFT: return "VK_LEFT";
-    case VK_SEL: return "VK_SEL";
-    case VK_SOFTA: return "VK_SOFTA";
-    case VK_SOFTB: return "VK_SOFTB";
-  }
-  return "VK_???";
-}
-#endif*/
-
 /**
  *  KeypadChannel class implementation 
  */
+ 
 /**
  * get one of VK_xxx 
  * Values are 0, 512
@@ -245,36 +226,6 @@ bool AnalogMicroNavigator::getAndDispatchKey(unsigned long now)
 const char *AnalogMicroNavigator::getKeyNames(uint8_t vks)
 {
   return ::getKeyNames(vks);
-}
-
-bool AnalogMicroNavigator::onUserInActivity(unsigned long ulNow)
-{
-  DEBUG_PRINT("AnalogNavigationKeypad::onUserInActivity ulNow="); DEBUG_PRINTDEC(ulNow); DEBUG_PRINTLN("");
-  return false; 
-}
-
-bool AnalogMicroNavigator::onKeyAutoRepeat(uint8_t vks)
-{
-  DEBUG_PRINT("AnalogNavigationKeypad::onKeyAutoRepeat vks="); DEBUG_PRINTLN(getKeyNames(vks));
-  return false; 
-}
-
-bool AnalogMicroNavigator::onKeyDown(uint8_t vks)
-{
-  DEBUG_PRINT("AnalogNavigationKeypad::onKeyDown vks="); DEBUG_PRINTLN(getKeyNames(vks));
-  return false; 
-}
-
-bool AnalogMicroNavigator::onLongKeyDown(uint8_t vks)
-{
-  DEBUG_PRINT("AnalogNavigationKeypad::onLongKeyDown vks="); DEBUG_PRINTLN(getKeyNames(vks));
-  return false; 
-}
-
-bool AnalogMicroNavigator::onKeyUp(uint8_t vks)
-{
-  DEBUG_PRINT("AnalogNavigationKeypad::onKeyUp vks="); DEBUG_PRINTLN(getKeyNames(vks));
-  return false; 
 }
 
 

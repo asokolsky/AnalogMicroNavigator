@@ -87,11 +87,11 @@ public:
   AnalogMicroNavigator(uint8_t bPin1, uint8_t bPin2);
 
   /** call backs.  derive a class and overwrite those */
-  virtual bool onUserInActivity(unsigned long ulNow);
-  virtual bool onKeyAutoRepeat(uint8_t vks);
-  virtual bool onKeyDown(uint8_t vks);
-  virtual bool onLongKeyDown(uint8_t vks);
-  virtual bool onKeyUp(uint8_t vks);
+  virtual bool onUserInActivity(unsigned long ulNow) = 0;
+  virtual bool onKeyAutoRepeat(uint8_t vks) = 0;
+  virtual bool onKeyDown(uint8_t vks) = 0;
+  virtual bool onLongKeyDown(uint8_t vks) = 0;
+  virtual bool onKeyUp(uint8_t vks) = 0;
   
 
   /**

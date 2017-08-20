@@ -3,6 +3,39 @@
 //#include "AnalogNavigationKeypad.h"
 #include "AnalogMicroNavigator.h"
 
+/**
+ * A BuiltIn LED
+ */
+
+class Led
+{
+  /** the overheating led pin - use a built-in one */
+  uint8_t m_pinLed;
+  int8_t m_ons = 0;
+
+public:
+  Led(uint8_t pinLed) : m_pinLed(pinLed)
+  {
+    pinMode(m_pinLed, OUTPUT);
+  }
+
+  void turnOn()
+  {
+    m_ons++;
+    if(m_ons > 0) digitalWrite(m_pinLed, HIGH);
+  }
+  void turnOff()
+  {
+    m_ons--;
+    if(m_ons <= 0) digitalWrite(m_pinLed, LOW);
+  }
+  
+};
+
+/** built-in Arduino led is on pin 13 */
+Led g_leg(13);
+
+
 class MyNavKeyPad: public /*AnalogNavigationKeypad*/ AnalogMicroNavigator
 {
 public:  
@@ -18,37 +51,39 @@ public:
   bool onKeyUp(uint8_t vks);
 };
 
+static unsigned long g_ulNow;
+
 bool MyNavKeyPad::onUserInActivity(unsigned long ulNow)
 {
-  DEBUG_PRINT("MyNavKeyPad::onUserInActivity ulNow="); DEBUG_PRINTDEC(ulNow); DEBUG_PRINTLN("");
+  DEBUG_PRINT("MyNavKeyPad::onUserInActivity ulNow="); DEBUG_PRINTDEC(g_ulNow); DEBUG_PRINTLN("");
   return false; 
 }
 
 bool MyNavKeyPad::onKeyAutoRepeat(uint8_t vks)
 {
-  DEBUG_PRINT("MyNavKeyPad::onKeyAutoRepeat vks="); DEBUG_PRINTLN(getKeyNames(vks));
+  DEBUG_PRINT("MyNavKeyPad::onKeyAutoRepeat vks="); DEBUG_PRINT(getKeyNames(vks)); DEBUG_PRINT(" ulNow="); DEBUG_PRINTDEC(g_ulNow); DEBUG_PRINTLN("");
   return false; 
 }
 
 bool MyNavKeyPad::onKeyDown(uint8_t vks)
 {
-  DEBUG_PRINT("MyNavKeyPad::onKeyDown vks="); DEBUG_PRINTLN(getKeyNames(vks));
+  DEBUG_PRINT("MyNavKeyPad::onKeyDown vks="); DEBUG_PRINT(getKeyNames(vks)); DEBUG_PRINT(" ulNow="); DEBUG_PRINTDEC(g_ulNow); DEBUG_PRINTLN("");
+  g_leg.turnOn();
   return false; 
 }
 
 bool MyNavKeyPad::onLongKeyDown(uint8_t vks)
 {
-  DEBUG_PRINT("MyNavKeyPad::onLongKeyDown vks="); DEBUG_PRINTLN(getKeyNames(vks));
+  DEBUG_PRINT("MyNavKeyPad::onLongKeyDown vks="); DEBUG_PRINT(getKeyNames(vks)); DEBUG_PRINT(" ulNow="); DEBUG_PRINTDEC(g_ulNow); DEBUG_PRINTLN("");
   return false; 
 }
 
 bool MyNavKeyPad::onKeyUp(uint8_t vks)
 {
-  DEBUG_PRINT("MyNavKeyPad::onKeyUp vks="); DEBUG_PRINTLN(getKeyNames(vks));
+  DEBUG_PRINT("MyNavKeyPad::onKeyUp vks="); DEBUG_PRINT(getKeyNames(vks)); DEBUG_PRINT(" ulNow="); DEBUG_PRINTDEC(g_ulNow); DEBUG_PRINTLN("");
+  g_leg.turnOff();
   return false; 
 }
-
-
 
 
 MyNavKeyPad g_kp;
@@ -67,8 +102,8 @@ void setup()
 
 void loop()
 {
-  unsigned long ulNow = millis();
-  g_kp.getAndDispatchKey(ulNow);
+  //unsigned long ulNow = millis();
+  g_kp.getAndDispatchKey(g_ulNow = millis());
  
 }
 
