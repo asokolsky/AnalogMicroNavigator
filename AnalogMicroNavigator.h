@@ -22,18 +22,21 @@ const uint8_t VK_SEL   = 16;
 const uint8_t VK_SOFTA = 32;
 const uint8_t VK_SOFTB = 64;
 
+/** delay in ms to debounce */
+const int s_iKeypadDebounceDelay = 50;
+/** delay in ms before the long key is fired */
+const int s_iKeypadLongKeyDelay = 3000;
+/** delay in ms to autorepeat */
+const int s_iKeypadAutoRepeatDelay = 500;
+/** inactivity timeout in milliseconds */
+const unsigned long s_ulKeypadInactivityDelay = 10000;
+
+
 class AnalogMicroNavigator;
 
 /** Low level class important for implementation only - ignore it but do not modify it. */
 class KeypadChannel
 {
-  /** delay in ms to debounce */
-  const int s_iDebounceDelay = 50;
-  /** delay in ms to autorepeat */
-  const int s_iAutoRepeatDelay = 500;
-  /** delay in ms before the long key is fired */
-  const int s_iLongKeyDelay = 3000;
-
 public:
   KeypadChannel(){}
 
@@ -82,6 +85,9 @@ protected:
  */
 class AnalogMicroNavigator
 {
+  /** when to fire key auto repeat */
+  unsigned long m_ulToFireAutoRepeat = 0;
+
 public:
   /** keypad is connected to thees analog input pins */
   AnalogMicroNavigator(uint8_t bPin1, uint8_t bPin2);
@@ -118,6 +124,8 @@ public:
   {
     m_ulToFireInactivity = ulNow + s_ulInactivityDelay;
   }
+  /** not for end-user! User by a channel */
+  bool envokeOnKeyAutoRepeat(unsigned long ulNow, uint8_t vks);
   
 protected:
   /** get readable names of the keyes pressed */

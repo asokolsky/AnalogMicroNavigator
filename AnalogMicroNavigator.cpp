@@ -107,6 +107,9 @@ uint8_t KeypadChannel::getKey()
 {
   //analogRead(m_bPin);                     // switch the channel to m_bPin and hold for 104µs
   int adc_key_in = analogRead(m_bPin);    // read the value from the sensor 
+#ifdef STM32_MCU_SERIES
+  adc_key_in = adc_key_in >> 2;           // STM32 has unconditional 12 bit resolution
+#endif
   // 1st option for speed reasons since it will be the most likely result
   if(adc_key_in > 950) {
     //DEBUG_PRINTLN("Keypad::getKey() => VK_NONE");
@@ -147,33 +150,32 @@ bool KeypadChannel::getAndDispatchKey(unsigned long ulNow, AnalogMicroNavigator 
       
     }
     // fire auto repeat logic here
-    if((m_ulToFireAutoRepeat == 0) || (ulNow < m_ulToFireAutoRepeat))
+    if((m_ulToFireAutoRepeat != 0) && (ulNow >= m_ulToFireAutoRepeat))
     {
-      ;
-    }
-    else
-    {
-      m_ulToFireAutoRepeat = ulNow + s_iAutoRepeatDelay;
-      //DEBUG_PRINT("onKeyAutoRepeat vk="); DEBUG_PRINT(getKeyName(vk)); DEBUG_PRINTLN("");
-      bRes = p->onKeyAutoRepeat(vk|uKeyOtherChannel);      
-    }      
-    // fire long key logic here
-    if((m_ulToFireLongKey == 0) || (ulNow < m_ulToFireLongKey))
+      bRes = p->envokeOnKeyAutoRepeat(ulNow, vk|uKeyOtherChannel);      
+      m_ulToFireAutoRepeat = ulNow + s_iKeypadAutoRepeatDelay;
       return bRes;
-    m_ulToFireLongKey = 0;
-    DEBUG_PRINT("onLongKeyDown vk="); DEBUG_PRINT(getKeyNames(vk)); DEBUG_PRINTLN("");
-    return p->onLongKeyDown(vk|uKeyOtherChannel) || bRes;
+    }
+    // fire long key logic here
+    if((m_ulToFireLongKey != 0) && (ulNow >= m_ulToFireLongKey))
+    {
+      m_ulToFireLongKey = 0;
+      m_ulToFireAutoRepeat = ulNow + s_iKeypadAutoRepeatDelay;  // arm autorepeat
+      DEBUG_PRINT("onLongKeyDown vk="); DEBUG_PRNT(getKeyNames(vk)); DEBUG_PRINTLN("");
+      return p->onLongKeyDown(vk|uKeyOtherChannel) || bRes;
+    }
+    return bRes;
   }
   // vk != m_cOldKey
-  if(m_ulBounceSubsided == 0) {
-    m_ulBounceSubsided = ulNow + s_iDebounceDelay;
+  if(m_ulBounceSubsided == 0) 
+  {
+    m_ulBounceSubsided = ulNow + s_iKeypadDebounceDelay;
     return false;
   }
   if(m_bOldKey == VK_NONE) 
   {
-    m_ulToFireLongKey = ulNow + s_iLongKeyDelay;
-    m_ulToFireAutoRepeat = ulNow + s_iAutoRepeatDelay;
-    m_ulBounceSubsided = 0;
+    m_ulToFireLongKey = ulNow + s_iKeypadLongKeyDelay;
+    m_ulToFireAutoRepeat = m_ulBounceSubsided = 0;
     DEBUG_PRINT("onKeyDown vk="); DEBUG_PRINT(getKeyNames(vk)); DEBUG_PRINT(" m_bOldKey="); DEBUG_PRINT(getKeyNames(m_bOldKey)); DEBUG_PRINTLN("");
     bRes = p->onKeyDown(vk|uKeyOtherChannel);
     p->onUserActivity(ulNow);
@@ -194,12 +196,20 @@ bool KeypadChannel::getAndDispatchKey(unsigned long ulNow, AnalogMicroNavigator 
   return bRes;
 }
 
+#ifndef INPUT_ANALOG
+#define INPUT_ANALOG INPUT
+#endif
+
+
 /**
  *  AnalogMicroNavigator class implementation 
  */
 AnalogMicroNavigator::AnalogMicroNavigator(uint8_t bPin1, uint8_t bPin2) :
   m_ulToFireInactivity(s_ulInactivityDelay)
 {
+  pinMode(bPin1, INPUT_ANALOG);
+  pinMode(bPin2, INPUT_ANALOG);
+
   static uint8_t Keys1[] = {VK_RIGHT, VK_LEFT, VK_SEL}; // this reflects PCB connections
   static uint8_t Keys2[] = {VK_UP, VK_DOWN};            // this reflects PCB connections
 
@@ -226,6 +236,18 @@ bool AnalogMicroNavigator::getAndDispatchKey(unsigned long now)
 const char *AnalogMicroNavigator::getKeyNames(uint8_t vks)
 {
   return ::getKeyNames(vks);
+}
+
+/** not for end-user! User by a channel */
+bool AnalogMicroNavigator::envokeOnKeyAutoRepeat(unsigned long ulNow, uint8_t vks)
+{
+  if(ulNow >= m_ulToFireAutoRepeat)
+  {
+    DEBUG_PRINT("onKeyAutoRepeat vks="); DEBUG_PRNT(getKeyNames(vks)); DEBUG_PRINT("  ulNow="); DEBUG_PRINTDEC(ulNow); DEBUG_PRINTLN("");
+    m_ulToFireAutoRepeat = ulNow + s_iKeypadAutoRepeatDelay;
+    return onKeyAutoRepeat(vks);
+  }
+  return false;
 }
 
 

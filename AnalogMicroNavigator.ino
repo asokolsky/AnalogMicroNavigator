@@ -3,6 +3,16 @@
 //#include "AnalogNavigationKeypad.h"
 #include "AnalogMicroNavigator.h"
 
+/** Keypad connected to these analog pins */
+const uint8_t bKeypadPin1 = 
+  A0; // for Arduino/Teensy
+  //PA0;   // for MapleMini
+const uint8_t bKeypadPin2 = 
+  A1;  // for Arduino/Teensy
+  //PA1;   // for MapleMini
+
+
+
 /**
  * A BuiltIn LED
  */
@@ -36,11 +46,12 @@ public:
 Led g_leg(13);
 
 
+
 class MyNavKeyPad: public /*AnalogNavigationKeypad*/ AnalogMicroNavigator
 {
 public:  
   /** this test if for a keyboard connected to A0 and A1 */
-  MyNavKeyPad() : /* AnalogNavigationKeypad(A1, A2) */ AnalogMicroNavigator(A0, A1)
+  MyNavKeyPad() : /* AnalogNavigationKeypad(A1, A2) */ AnalogMicroNavigator(bKeypadPin1, bKeypadPin2)
   {
     
   }
